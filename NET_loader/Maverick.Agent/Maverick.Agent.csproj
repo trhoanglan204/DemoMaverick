@@ -52,6 +52,7 @@
     <Compile Include="CommandFunction.cs" />
     <Compile Include="CommandSender.cs" />
     <Compile Include="CommandTypes.cs" />
+    <Compile Include="Crypto.cs" />
     <Compile Include="KillSystemFunction.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -59,6 +60,7 @@
     <Compile Include="ScreenshotFunction.cs" />
     <Compile Include="GetFileFunction.cs" />
     <Compile Include="SendFileFunction.cs" />
+    <Compile Include="Traffic.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

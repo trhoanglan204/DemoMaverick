@@ -1,8 +1,123 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@model List<InfoClientModel>
+@{
+    ViewData["Title"] = "Client Console";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="container-fluid p-2" style="height:90vh;">
+    <div class="row h-100 border border-dark">
+        <!-- Client list -->
+        @if (Model == null)
+        {
+            <h5 class="title text-center">Empty</h5>
+        }
+        else
+        {
+            @foreach (var client in Model)
+            {
+                <div class="col-3 border-end border-dark p-0">
+                    <div class="list-group list-group-flush">
+                        <a href="#" class="list-group-item list-group-item-action text-primary">@client.Hostname</a>
+                    </div>
+                </div>
+            }
+        }
+        <!-- Message panel -->
+        <div class="col-9 d-flex flex-column p-0">
+            <!-- Messages area -->
+            <div id="messageArea" class="flex-grow-1 overflow-auto p-3 bg-light">
+                <!-- Example Command -->
+                <div class="d-flex align-items-start mb-3">
+                    <div class="status-circle pending me-2"></div>
+                    <div>
+                        <div class="small text-muted">Command</div>
+                        <div class="p-2 rounded bg-warning-subtle border border-warning" style="min-width: 200px;">
+                            ls -la /root
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Example Response -->
+                <div class="d-flex align-items-start mb-3">
+                    <div class="status-circle done me-2"></div>
+                    <div>
+                        <div class="small text-muted">Response</div>
+                        <div class="p-2 rounded bg-warning bg-opacity-25 border border-warning-subtle" style="min-width: 200px;">
+                            total 8<br />drwxr-xr-x 2 root root 4096 .<br />drwxr-xr-x 4 root root 4096 ..
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Input area -->
+            <div class="border-top border-dark p-2 bg-white d-flex align-items-center">
+                <label class="btn btn-outline-secondary btn-sm me-2 mb-0">
+                    <i class="bi bi-paperclip"></i>
+                    <input type="file" hidden />
+                </label>
+                <input id="cmdInput" class="form-control me-2" placeholder="Enter command..." />
+                <button id="sendBtn" class="btn btn-dark rounded-circle">
+                    <i class="bi bi-send"></i>
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
+
+@section Styles {
+    <style>
+        .status-circle {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+            .status-circle.pending {
+                border: 2px solid green;
+                background-color: white;
+            }
+
+            .status-circle.done {
+                background-color: green;
+                position: relative;
+            }
+
+                .status-circle.done::after {
+                    content: "✓";
+                    color: white;
+                    font-size: 10px;
+                    position: absolute;
+                    top: -2px;
+                    left: 3px;
+                }
+
+        .bg-warning-subtle {
+            background-color: #fff7cc !important;
+        }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        // Example: toggle between pending and done
+        document.getElementById("sendBtn").addEventListener("click", function () {
+            const input = document.getElementById("cmdInput");
+            if (!input.value.trim()) return;
+
+            const msgArea = document.getElementById("messageArea");
+            const cmd = document.createElement("div");
+            cmd.classList.add("d-flex", "align-items-start", "mb-3");
+            cmd.innerHTML = `
+                <div class="status-circle pending me-2"></div>
+                <div>
+                    <div class="small text-muted">Command</div>
+                    <div class="p-2 rounded bg-warning-subtle border border-warning">${input.value}</div>
+                </div>
+            `;
+            msgArea.appendChild(cmd);
+            input.value = "";
+            msgArea.scrollTop = msgArea.scrollHeight;
+        });
+    </script>
+}

@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -24,6 +24,10 @@
   <ItemGroup>
     <ProjectReference Include="..\Maverick.DataAccess\Maverick.DataAccess.csproj" />
     <ProjectReference Include="..\Maverick.Models\Maverick.Models.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Views\Login\" />
   </ItemGroup>
 
 </Project>

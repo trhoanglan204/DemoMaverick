@@ -9,6 +9,7 @@ namespace Maverick.Commander
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();
+            builder.Services.AddScoped<Services.ICommandAndControl, Services.CommandAndControl>();
 
             var app = builder.Build();
 
