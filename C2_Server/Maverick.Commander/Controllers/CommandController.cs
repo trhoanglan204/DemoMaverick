@@ -45,10 +45,7 @@ namespace Maverick.Commander.Controllers
             var encryptedData = ms.ToArray();
             var rawBody = await Crypto.DecryptAESPayload(encryptedData);
             var json = Encoding.UTF8.GetString(rawBody);
-            var clientRequest = JsonSerializer.Deserialize<CommandRequestModel>(json);
-            if (clientRequest == null)
-                return BadRequest();
-            int ClientId = clientRequest.InternalID;
+            if (!int.TryParse(json, out var ClientId)) return BadRequest();
             var command = _commandAndControl.GetCommandForClient(ClientId);
             if (command == null)
                 return Ok();

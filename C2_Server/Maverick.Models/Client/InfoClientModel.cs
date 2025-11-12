@@ -1,7 +1,12 @@
-﻿namespace Maverick.Models
+﻿using Maverick.Models.History;
+using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
+
+namespace Maverick.Models
 {
     public class InfoClientModel
     {
+        [Key]
         public int InternalID { get; set; }
         public string? ClientID { get; set; }
         public string? Username { get; set; }

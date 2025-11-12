@@ -1,9 +1,5 @@
-﻿namespace Maverick.Models
+﻿namespace Maverick.Models.Command
 {
-    public class CommandTypesModel
-    {
-    }
-
     public enum CommandTypes
     {
         INFOCLIENT,
@@ -13,14 +9,5 @@
         RECONNECT,
         REBOOT,
         KILLAPPLICATION,
-        SCREENSHOT,
-        KEYLOGGER,
-        MOUSECLICK,
-        KEYBOARDONECHAR,
-        KEYBOARDMULTIPLESCHARS,
-        GETMODULE,
-        LISTALLHANDLESOPENEDS,
-        KILLPROCESS,
-        CLOSEHANDLE,
     }
 }

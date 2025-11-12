@@ -7,19 +7,30 @@ using System.Threading.Tasks;
 
 namespace Maverick.Agent
 {
-    public static class Crypto
+    public static class CryptoFunction
     {
         private static readonly byte[] keyAES = Encoding.UTF8.GetBytes("GioToiLaiLangThang_TinhYeuThiMienMan");
         private static readonly byte[] keyXOR = Encoding.UTF8.GetBytes("AT19N");
+        private static readonly byte[] SecretKey = Encoding.UTF8.GetBytes("MatNaiChaChaCha");
+
+        public static string GetRequestHeaderVallue()
+        {
+            return GetHash(SecretKey);
+        }
 
         private static byte[] GenerateIV()
         {
             byte[] iv = new byte[16];
-            using (var rng = System.Security.Cryptography.RandomNumberGenerator.Create())
+            using (var rng = RandomNumberGenerator.Create())
             {
                 rng.GetBytes(iv);
             }
             return iv;
+        }
+
+        public static string GetHash(byte[] sc)
+        {
+            return BitConverter.ToString(SHA256.Create().ComputeHash(sc)).Replace("-", "").ToLowerInvariant();
         }
 
         public static async Task<byte[]> EncryptAESPayload(byte[] payload)
@@ -97,18 +108,6 @@ namespace Maverick.Agent
                 result[i] = (byte)(payload[i] ^ keyXOR[i % keyXOR.Length]);
             }
             return result;
-        }
-
-        public static string GetHash(byte[] data)
-        {
-            byte[] hashBytes = SHA256.Create().ComputeHash(data);
-            return BitConverter.ToString(hashBytes).Replace("-", "").ToLowerInvariant();
-        }
-
-        public static string GetHash(string data)
-        {
-            byte[] byteData = Encoding.UTF8.GetBytes(data);
-            return GetHash(data);
         }
     }
 }

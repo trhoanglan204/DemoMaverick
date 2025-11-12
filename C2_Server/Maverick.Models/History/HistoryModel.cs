@@ -1,12 +1,15 @@
-﻿namespace Maverick.Models
+﻿using Maverick.Models.Command;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace Maverick.Models.History
 {
     public class HistoryModel
     {
+        public int HistoryID { get; set; }
         public int InternalID { get; set; }
-        public string? ClientID { get; set; }
-        public string? ActionType { get; set; }
-        public string? ActionDetails { get; set; }
-        public string? ActionResult { get; set; }
-        public DateTime ActionTime { get; set; }
+        public CommandRequestModel? ActionDetails { get; set; }
+    
+        public DateTime DateTime { get; set; }
     }
 }

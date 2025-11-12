@@ -6,8 +6,7 @@ using System.Threading.Tasks;
 
 namespace Maverick.Agent
 {
-    public class Traffic
+    public class NativeMethods
     {
-
     }
 }

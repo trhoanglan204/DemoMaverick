@@ -1,5 +1,6 @@
 ﻿using Maverick.Models;
 using Maverick.Models.Command;
+using Maverick.Models.History;
 
 #pragma warning disable IDE0290
 
@@ -38,9 +39,8 @@ namespace Maverick.Commander.Services
             _histories[commandRequestModel.InternalID].Add(new HistoryModel
             {
                 InternalID = commandRequestModel.InternalID,
-                ClientID = commandRequestModel.ClientId,
-                ActionResult = commandRequestModel.Command,
-                ActionTime = commandRequestModel.DateTime
+                ActionDetails = commandRequestModel,
+                DateTime = DateTime.UtcNow
             });
             return Task.CompletedTask;
         }

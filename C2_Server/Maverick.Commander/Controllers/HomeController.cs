@@ -1,5 +1,6 @@
 using Maverick.Commander.Services;
 using Maverick.Models;
+using Maverick.Models.History;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 
