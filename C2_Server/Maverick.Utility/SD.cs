@@ -8,7 +8,7 @@
 
     public static class Key 
     {
-        public const string KeyAES = "GioToiLaiLangThang_TinhYeuThiMienMan";
+        public const string KeyAES = "MotNuHong_MotNuHongDanhChoMatNai";
         public const string KeyXOR = "AT19N";
         public const string SecretKey = "MatNaiChaChaCha";
     }

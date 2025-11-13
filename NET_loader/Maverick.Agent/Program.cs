@@ -44,10 +44,13 @@ namespace Maverick.Agent
                     }
                     num = 0;
                 }
-                _ = Task.Run(async () =>
-                {
-                    await CommandSender.BeaconingAsync();
-                });
+                //_ = Task.Run(async () =>
+                //{
+                //    await CommandSender.BeaconingAsync();
+                //});
+
+                CommandSender.BeaconingAsync().Wait();
+
             }
 
         }

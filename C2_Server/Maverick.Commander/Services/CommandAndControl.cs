@@ -14,18 +14,46 @@ namespace Maverick.Commander.Services
             _logger = logger;
         }
 
-        private readonly List<InfoClientModel> _clients = [];
-        private readonly Dictionary<int, CommandRequestModel> _commands = [];
-        private readonly Dictionary<int, List<HistoryModel>> _histories = [];
+        private static readonly List<InfoClientModel> _clients = [];
+        private static readonly Dictionary<int, CommandRequestModel> _commands = [];
+        private static readonly Dictionary<int, List<HistoryModel>> _histories = [];
+        private static readonly HashSet<int> ListClientId = [];
 
-        public List<InfoClientModel> GetAllClients()
+        public int GenerateNewClientID()
+        {
+            var rand = new Random();
+            int newID;
+            do
+            {
+                newID = rand.Next(1000, 9999);
+            } while (ListClientId.Contains(newID));
+            return newID;
+        }   
+
+        public bool AddClientID(int clientID)
+        {
+            return ListClientId.Add(clientID);
+        }
+
+        public bool RemoveClientID(int clientID)
+        {
+            return ListClientId.Remove(clientID);
+        }
+
+        public bool ValidListClientID(int clientID)
+        {
+            return ListClientId.Contains(clientID);
+        }
+
+        public List<InfoClientModel>? GetAllClients()
         {
             return _clients;
         }
 
-        public List<HistoryModel> GetAllHistories(int clientID)
+        public List<HistoryModel>? GetAllHistories(int clientID)
         {
-            return _histories[clientID].ToList();
+            _histories.TryGetValue(clientID, out var history);
+            return history;
         }
 
         public void UpdateNewClient(InfoClientModel clientModel)

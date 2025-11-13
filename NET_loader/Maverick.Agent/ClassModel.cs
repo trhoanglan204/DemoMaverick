@@ -34,4 +34,10 @@ namespace Maverick.Agent
         public byte[] Data { get; set; }
     }
 
+    public class FileUploadModel
+    {
+        public string FileName { get; set; }
+        public byte[] FileData { get; set; }
+    }
+
 }

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using System.Threading.Tasks;
+using System.Text.Json;
 
 namespace Maverick.Agent
 {
@@ -13,7 +14,17 @@ namespace Maverick.Agent
         {
             try
             {
-                return File.ReadAllBytes(name);
+                if (!File.Exists(name))
+                {
+                    return null;
+                }
+                var data = File.ReadAllBytes(name);
+                var model = new FileUploadModel
+                {
+                    FileName = Path.GetFileName(name),
+                    FileData = data
+                };
+                return Encoding.UTF8.GetBytes(JsonSerializer.Serialize(model));
             }
             catch (Exception)
             {

@@ -9,11 +9,13 @@ namespace Maverick.Agent
     public class TrafficFunction
     {
         private static readonly HttpClient _http;
+        private static readonly string HeaderHashCheck;
 
         static TrafficFunction()
         {
+            HeaderHashCheck = CryptoFunction.GetRequestHeaderVallue();
             _http = new HttpClient();
-            _http.DefaultRequestHeaders.Add("X-Request-Hash",CryptoFunction.GetRequestHeaderVallue());
+            _http.DefaultRequestHeaders.Add("X-Request-Hash", HeaderHashCheck);
         }
 
         public static async Task<byte[]> SendDataAsync(string url, byte[] data)
@@ -27,9 +29,9 @@ namespace Maverick.Agent
                     return await response.Content.ReadAsByteArrayAsync();
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                throw new InvalidOperationException("Data transmission failed.", ex);
+                return null;
             }
         }
 

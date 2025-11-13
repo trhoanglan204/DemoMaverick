@@ -1,6 +1,7 @@
 using Maverick.Commander.Services;
 using Maverick.Models;
 using Maverick.Models.History;
+using Maverick.Models.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 
@@ -19,11 +20,17 @@ namespace Maverick.Commander.Controllers
             _commandAndControl = commandAndControl;
         }
 
-        public IActionResult Index()
+        public IActionResult Index(string? clientId)
         {
-            var listClient = _commandAndControl.GetAllClients();
-            var listHistory = new List<HistoryModel>();
-            return View(listClient);
+            var clientChatVM = new ClientChatVM
+            {
+                Clients = _commandAndControl.GetAllClients()
+            };
+            if (!string.IsNullOrEmpty(clientId))
+            {
+                clientChatVM.Histories = _commandAndControl.GetAllHistories(int.Parse(clientId));
+            }
+            return View(clientChatVM);
         }
 
         public IActionResult Privacy()

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Text.Json.Serialization;
 
 namespace Maverick.Models.Command
 {
@@ -12,5 +8,7 @@ namespace Maverick.Models.Command
         public CommandTypes ActionType { get; set; }
         public string? Command { get; set; }
         public byte[]? Data { get; set; }
+        [JsonIgnore]
+        public bool IsResponded { get; set; }
     }
 }

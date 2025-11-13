@@ -9,9 +9,9 @@ namespace Maverick.Agent
 {
     public static class CryptoFunction
     {
-        private static readonly byte[] keyAES = Encoding.UTF8.GetBytes("GioToiLaiLangThang_TinhYeuThiMienMan");
+        private static readonly byte[] keyAES = Encoding.UTF8.GetBytes("MotNuHong_MotNuHongDanhChoMatNai");
         private static readonly byte[] keyXOR = Encoding.UTF8.GetBytes("AT19N");
-        private static readonly byte[] SecretKey = Encoding.UTF8.GetBytes("MatNaiChaChaCha");
+        private static readonly string SecretKey = "MatNaiChaChaCha";
 
         public static string GetRequestHeaderVallue()
         {
@@ -28,9 +28,10 @@ namespace Maverick.Agent
             return iv;
         }
 
-        public static string GetHash(byte[] sc)
+        public static string GetHash(string data)
         {
-            return BitConverter.ToString(SHA256.Create().ComputeHash(sc)).Replace("-", "").ToLowerInvariant();
+            byte[] byteData = Encoding.UTF8.GetBytes(data);
+            return BitConverter.ToString(byteData).Replace("-", "").ToLowerInvariant();
         }
 
         public static async Task<byte[]> EncryptAESPayload(byte[] payload)

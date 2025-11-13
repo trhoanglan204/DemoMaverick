@@ -2,6 +2,7 @@
 using Maverick.Models;
 using Maverick.Models.Command;
 using Maverick.Utility;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using System.Text;
 using System.Text.Json;
@@ -16,12 +17,13 @@ namespace Maverick.Commander.Controllers
     {
         private readonly ILogger<CommandController> _logger;
         private readonly ICommandAndControl _commandAndControl;
-        private readonly string HeaderHashCheck = Crypto.GetHash(Key.SecretKey);
+        private readonly string HeaderHashCheck;
 
         public CommandController(ILogger<CommandController> logger, ICommandAndControl commandAndControl)
         {
             _logger = logger;
             _commandAndControl = commandAndControl;
+            HeaderHashCheck = Crypto.GetHash(Key.SecretKey);
         }
 
         private bool IsValidRequest()
@@ -46,6 +48,8 @@ namespace Maverick.Commander.Controllers
             var rawBody = await Crypto.DecryptAESPayload(encryptedData);
             var json = Encoding.UTF8.GetString(rawBody);
             if (!int.TryParse(json, out var ClientId)) return BadRequest();
+            if (!_commandAndControl.ValidListClientID(ClientId))
+                return Ok(0xffffffff);
             var command = _commandAndControl.GetCommandForClient(ClientId);
             if (command == null)
                 return Ok();
@@ -87,10 +91,15 @@ namespace Maverick.Commander.Controllers
             var newClientInfo = JsonSerializer.Deserialize<InfoClientModel>(json);
             if (newClientInfo == null)
                 return BadRequest();
+            int newClientId = newClientInfo.InternalID;
+            if (newClientId == 0)
+            {
+                newClientId = _commandAndControl.GenerateNewClientID();
+                newClientInfo.InternalID = newClientId;
+            }
             _commandAndControl.UpdateNewClient(newClientInfo);
-            return Ok();
+            _commandAndControl.AddClientID(newClientInfo.InternalID);
+            return Ok(newClientId);
         }
-
-
     }
 }

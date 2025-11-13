@@ -74,16 +74,10 @@ namespace Maverick.Utility
             return result;
         }
 
-        public static string GetHash(byte[] data)
-        {
-            byte[] hashBytes = SHA256.HashData(data);
-            return BitConverter.ToString(hashBytes).Replace("-","").ToLowerInvariant();
-        }
-
         public static string GetHash(string data)
         {
             byte[] byteData = Encoding.UTF8.GetBytes(data);
-            return GetHash(data);
+            return BitConverter.ToString(byteData).Replace("-", "").ToLowerInvariant();
         }
     }
 }

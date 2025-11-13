@@ -7,9 +7,10 @@ using System.Threading.Tasks;
 
 namespace Maverick.Models.ViewModels
 {
-    public class ClientAndCommandVM
+    public class ClientChatVM
     {
         public List<InfoClientModel>? Clients { get; set; }
         public List<HistoryModel>? Histories { get; set; }
+        public string? SelectedClientId { get; set; }
     }
 }
