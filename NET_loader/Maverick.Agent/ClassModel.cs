@@ -9,7 +9,6 @@ namespace Maverick.Agent
         DOCOMMAND,
         GETFILE,
         SENDFILE,
-        RECONNECT,
         REBOOT,
         KILLAPPLICATION,
     }
@@ -29,9 +28,11 @@ namespace Maverick.Agent
     public class CommandRequestModel
     {
         public int InternalID { get; set; }
-        public CommandTypes ActionType { get; set; }
+        public int CommandID { get; set; }
+        public string ActionType { get; set; }
         public string Command { get; set; }
         public byte[] Data { get; set; }
+        public FileUploadModel FileUpload {  get; set; }
     }
 
     public class FileUploadModel

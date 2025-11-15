@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Mvc;
+
 namespace Maverick.Commander
 {
     public class Program
@@ -10,7 +12,10 @@ namespace Maverick.Commander
             // Add services to the container.
             builder.Services.AddControllersWithViews();
             builder.Services.AddScoped<Services.ICommandAndControl, Services.CommandAndControl>();
-
+            builder.Services.Configure<ApiBehaviorOptions>(options =>
+            {
+                options.SuppressModelStateInvalidFilter = true;  // Add this line
+            });
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -21,7 +26,7 @@ namespace Maverick.Commander
                 app.UseHsts();
             }
 
-            app.UseHttpsRedirection();
+            //app.UseHttpsRedirection();
             app.UseStaticFiles();
 
             app.UseRouting();

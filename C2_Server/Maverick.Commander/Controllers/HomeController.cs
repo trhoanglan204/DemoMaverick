@@ -24,7 +24,8 @@ namespace Maverick.Commander.Controllers
         {
             var clientChatVM = new ClientChatVM
             {
-                Clients = _commandAndControl.GetAllClients()
+                Clients = _commandAndControl.GetAllClients(),
+                SelectedClientId = clientId
             };
             if (!string.IsNullOrEmpty(clientId))
             {

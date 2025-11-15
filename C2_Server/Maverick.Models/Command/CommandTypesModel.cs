@@ -6,7 +6,6 @@
         DOCOMMAND,
         GETFILE,
         SENDFILE,
-        RECONNECT,
         REBOOT,
         KILLAPPLICATION,
     }

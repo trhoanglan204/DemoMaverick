@@ -17,9 +17,8 @@
                 {
                     foreach (var client in Model.Clients)
                     {
-                        var isActive = Model.SelectedClientId == client.ClientID ? "active" : "";
                         <a href="@Url.Action("Index", "Home", new { clientId = client.InternalID })"
-                           class="list-group-item list-group-item-action text-primary @isActive">
+                           class="list-group-item list-group-item-action text-primary">
                             @client.Hostname
                         </a>
                     }
@@ -47,7 +46,7 @@
 
                         <!-- Command -->
                         <div class="d-flex align-items-start mb-3">
-                            <div class="status-circle @(action.IsResponded ? "done" : "pending") me-2"></div>
+                            <div class="status-circle @GetCircleClass(history.Status) me-2"></div>
                             <div>
                                 <div class="small text-muted">Command @history.DateTime.ToString("HH:mm:ss")</div>
                                 <div class="p-2 rounded bg-warning-subtle border border-warning" style="min-width: 200px;">
@@ -57,7 +56,7 @@
                         </div>
 
                         <!-- Response -->
-                        @if (action.Data != null)
+                        @if (history.Status == CommandStatus.Responded && action.Data != null)
                         {
                             <div class="d-flex align-items-start mb-3">
                                 <div class="status-circle done me-2"></div>
@@ -65,7 +64,7 @@
                                     <div class="small text-muted">Response</div>
                                     @switch (action.ActionType)
                                     {
-                                        case CommandTypes.GETFILE:
+                                        case "GETFILE":
                                             {
                                                 var fileModel = System.Text.Json.JsonSerializer.Deserialize<FileUploadModel>(action.Data);
                                                 if (fileModel != null)
@@ -109,9 +108,23 @@
                 <div class="border-top border-dark p-2 bg-white d-flex align-items-center">
                     <label class="btn btn-outline-secondary btn-sm me-2 mb-0">
                         <i class="bi bi-paperclip"></i>
-                        <input type="file" hidden />
+                        <input id="fileInput" type="file" hidden />
                     </label>
-                    <input id="cmdInput" class="form-control me-2" placeholder="Enter command..." />
+                    <div class="dropup me-2">
+                        <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                            <span id="selectedCommandType">DOCOMMAND</span>
+                        </button>
+                        <ul class="dropdown-menu">
+                            @foreach (var type in Enum.GetNames(typeof(CommandTypes)))
+                            {
+                                <li>
+                                    <a class="dropdown-item cmd-type-item" href="#" data-type="@type">@type</a>
+                                </li>
+                            }
+                        </ul>
+                    </div>
+
+                    <input type="text" id="cmdInput" class="form-control me-2" placeholder="Enter command..." />
                     <button id="sendBtn" class="btn btn-dark rounded-circle">
                         <i class="bi bi-send"></i>
                     </button>
@@ -130,24 +143,24 @@
             flex-shrink: 0;
         }
 
-            .status-circle.pending {
-                border: 2px solid green;
-                background-color: white;
-            }
+        .status-circle.pending {
+            border: 2px solid green;
+            background-color: white;
+        }
 
-            .status-circle.done {
-                background-color: green;
-                position: relative;
-            }
+        .status-circle.done {
+            background-color: green;
+            position: relative;
+        }
 
-                .status-circle.done::after {
-                    content: "✓";
-                    color: white;
-                    font-size: 10px;
-                    position: absolute;
-                    top: -2px;
-                    left: 3px;
-                }
+        .status-circle.done::after {
+            content: "✓";
+            color: white;
+            font-size: 10px;
+            position: absolute;
+            top: -2px;
+            left: 3px;
+        }
 
         .bg-warning-subtle {
             background-color: #fff7cc !important;
@@ -157,28 +170,165 @@
             background-color: #e9ecef;
             border-color: #dee2e6;
         }
+
+        .status-circle.received {
+            background-color: orange;
+            position: relative;
+        }
+
+        .status-circle.received::after {
+            content: "";
+            width: 8px;
+            height: 2px;
+            background: white;
+            position: absolute;
+            top: 6px;
+            left: 3px;
+        }
+
+        #messageArea {
+            overflow-y: auto; /* Enable vertical scrolling */
+            max-height: 80vh; /* Set a maximum height to ensure scrolling happens if content exceeds the box */
+        }
+
+
     </style>
 }
 
 @section Scripts {
     <script>
-        document.getElementById("sendBtn")?.addEventListener("click", function () {
-            const input = document.getElementById("cmdInput");
-            if (!input.value.trim()) return;
+          $(".sendBtn").click(function () {
+            var coupon_value = $(".coupon-value").val();
+            //alert(coupon_value);
+            $.ajax({
+                type: "POST",
+                url: "@Url.Action("GetCoupon", "Cart")",
+                data: { coupon_value: coupon_value },
+                success: function (result) {
+                    if (result.success) {
+                        Swal.fire(result.message);
+                        location.reload();
+                    } else {
 
+                        Swal.fire(result.message);
+                    }
+                }
+            });
+        });
+        document.getElementById("sendBtn")?.addEventListener("click", async function () {
+            const input = document.getElementById("cmdInput");
+            const selectedType = document.getElementById("selectedCommandType").innerText;
+            const clientId = "@Model.SelectedClientId";
+            const fileInput = document.getElementById("fileInput");
+
+            let payload = {
+                InternalID: parseInt(clientId),
+                ActionType: selectedType,
+                Command: null,
+                Data: null,
+                FileUpload: null
+            };
+
+            // ---------------------------
+            // HANDLE SENDFILE
+            // ---------------------------
+            if (selectedType === "SENDFILE") {
+                if (fileInput.files.length === 0) {
+                    alert("Chưa chọn file để gửi!");
+                    return;
+                }
+
+                let file = fileInput.files[0];
+                let arrayBuffer = await file.arrayBuffer();
+                let bytes = Array.from(new Uint8Array(arrayBuffer));
+
+                payload.FileUpload = {
+                    FileName: file.name,
+                    FileData: bytes
+                };
+
+                payload.Command = file.name; // optional: đặt tên file làm command text
+            }
+
+            // ---------------------------
+            // HANDLE NORMAL COMMANDS
+            // ---------------------------
+            else {
+                if (!input.value.trim() && selectedType !== "INFOCLIENT") {
+                    alert("Chưa nhập command!");
+                    return;
+                }
+
+                payload.Command = input.value.trim();
+            }
+
+            // ---------------------------
+            // SEND TO BACKEND
+            // ---------------------------
+            var sendUrl = '@Url.Action("SendCommand", "Command")';
+            console.log("Sending payload:", JSON.stringify(payload, null, 2));
+            const resp = await fetch(sendUrl, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+
+            if (!resp.ok) {
+                const errorData = await resp.json(); // Or resp.text() if not JSON
+                console.error(`Error: Status ${resp.status}`, errorData);
+                alert("Error sending command! Check console for details.");
+                return;
+            }
+
+            // ---------------------------
+            // LOCAL UI FEEDBACK
+            // ---------------------------
             const msgArea = document.getElementById("messageArea");
             const cmd = document.createElement("div");
             cmd.classList.add("d-flex", "align-items-start", "mb-3");
             cmd.innerHTML = `
                 <div class="status-circle pending me-2"></div>
                 <div>
-                    <div class="small text-muted">Command</div>
-                    <div class="p-2 rounded bg-warning-subtle border border-warning">${input.value}</div>
+                    <div class="small text-muted">Command (${selectedType})</div>
+                    <div class="p-2 rounded bg-warning-subtle border border-warning">
+                        ${selectedType === "SENDFILE" ? "📎 " + payload.Command : payload.Command}
+                    </div>
                 </div>
             `;
             msgArea.appendChild(cmd);
+
+            // clear input
             input.value = "";
+            fileInput.value = "";
             msgArea.scrollTop = msgArea.scrollHeight;
         });
+
+        // update dropdown selection
+
+        document.querySelectorAll(".cmd-type-item").forEach(item => {
+            item.addEventListener("click", () => {
+                let type = item.dataset.type;
+                document.getElementById("selectedCommandType").innerText = type;
+
+                document.querySelectorAll(".cmd-type-item").forEach(x => x.classList.remove("active"));
+
+                item.classList.add("active");
+            });
+        });
+
     </script>
 }
+
+@functions {
+    string GetCircleClass(CommandStatus status)
+    {
+        return status switch
+        {
+            CommandStatus.Sent => "pending",
+            CommandStatus.Received => "received",
+            CommandStatus.Responded => "done",
+            _ => "pending"
+        };
+    }
+}
+

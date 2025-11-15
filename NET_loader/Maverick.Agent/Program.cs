@@ -42,6 +42,7 @@ namespace Maverick.Agent
                     {
                         isConnected = false;
                     }
+                    System.Threading.Thread.Sleep(10000); //nghi ngoi
                     num = 0;
                 }
                 //_ = Task.Run(async () =>

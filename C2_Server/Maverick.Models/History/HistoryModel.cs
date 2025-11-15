@@ -9,7 +9,14 @@ namespace Maverick.Models.History
         public int HistoryID { get; set; }
         public int InternalID { get; set; }
         public CommandRequestModel? ActionDetails { get; set; }
-    
+        public CommandStatus Status { get; set; }
         public DateTime DateTime { get; set; }
+    }
+
+    public enum CommandStatus
+    {
+        Sent,        
+        Received,
+        Responded
     }
 }

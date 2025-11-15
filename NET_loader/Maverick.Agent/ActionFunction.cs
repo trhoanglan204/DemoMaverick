@@ -10,7 +10,7 @@ namespace Maverick.Agent
 {
     public static class ActionFunction
     {
-        public static byte[] PerformReadFile(string name)
+        public static FileUploadModel PerformReadFile(string name)
         {
             try
             {
@@ -24,7 +24,7 @@ namespace Maverick.Agent
                     FileName = Path.GetFileName(name),
                     FileData = data
                 };
-                return Encoding.UTF8.GetBytes(JsonSerializer.Serialize(model));
+                return model;
             }
             catch (Exception)
             {
