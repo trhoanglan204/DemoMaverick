@@ -13,7 +13,6 @@ namespace Maverick.Models
         public string? Hostname { get; set; }
         public string? OSversion { get; set; }
         public string? ClientVersion { get; set; }
-        public int NumOfMonitors { get; set; }
         public string? ClientIP { get; set; }
     }
 }
