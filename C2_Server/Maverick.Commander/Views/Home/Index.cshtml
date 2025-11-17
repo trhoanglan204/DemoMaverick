@@ -197,24 +197,6 @@
 
 @section Scripts {
     <script>
-          $(".sendBtn").click(function () {
-            var coupon_value = $(".coupon-value").val();
-            //alert(coupon_value);
-            $.ajax({
-                type: "POST",
-                url: "@Url.Action("GetCoupon", "Cart")",
-                data: { coupon_value: coupon_value },
-                success: function (result) {
-                    if (result.success) {
-                        Swal.fire(result.message);
-                        location.reload();
-                    } else {
-
-                        Swal.fire(result.message);
-                    }
-                }
-            });
-        });
         document.getElementById("sendBtn")?.addEventListener("click", async function () {
             const input = document.getElementById("cmdInput");
             const selectedType = document.getElementById("selectedCommandType").innerText;

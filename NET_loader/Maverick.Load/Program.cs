@@ -9,14 +9,9 @@ namespace Maverick.Agent
 {
     internal class Program
     {
-        public static void Main(string[] args)
+        public static void Main()
         {
             if (AntiAnalysisVietNam.IsSuspiciousEnvironment())
-            {
-                return;
-            }
-            int parameterHome = 0;
-            if (args.Length != 0 && !int.TryParse(args[0], out parameterHome))
             {
                 return;
             }

